@@ -10,13 +10,21 @@ contract MultiSend is Escapable {
   address CALLER = 0x839395e20bbB182fa440d08F850E6c7A8f6F0780;
   address DESTINATION = 0x8ff920020c8ad673661c8117f2855c384758c572;
 
+  event PackedTransfer(address addr, uint amount);
+
   function MultiSend() Escapable(CALLER, DESTINATION) public {}
   
   function multiTransferTightlyPacked(bytes32[] _addressAndAmount) payable public returns(bool) {
-    for (uint i = 0; i < _addressAndAmount.length; i++) {
-        _safeTransfer(address(_addressAndAmount[i] >> 96), uint(uint96(_addressAndAmount[i])));
-    }
-    return true;
+      address addr;
+      uint amount;
+      uint totalAmount;
+      for (uint i = 0; i < _addressAndAmount.length; i++) {
+          addr = address(_addressAndAmount[i] >> 96);
+          amount = uint(uint96(_addressAndAmount[i]));
+          PackedTransfer(addr, amount);
+          _safeTransfer(address(_addressAndAmount[i] >> 96), uint(uint96(_addressAndAmount[i])));
+      }
+      return true;
   }
 
   function multiTransfer(address[] _address, uint[] _amount) payable public returns(bool) {
